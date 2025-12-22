@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI + Vanilla JS Task Board</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Task Board</h1>
+            <p>A simple C++ -> Web Dev sample</p>
+        </header>
+
+        <section id="add-task-section">
+            <input type="text" id="task-input" placeholder="Enter a new task..." />
+            <button id="add-btn">Add Task</button>
+        </section>
+
+        <section id="task-list-section">
+            <ul id="task-list">
+                <!-- Tasks will be injected here by JavaScript -->
+            </ul>
+        </section>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
