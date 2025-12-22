@@ -61,6 +61,12 @@ button:hover {
     opacity: 0.8;
 }
 
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
 #add-btn {
     background-color: var(--primary-color);
     color: #1a1b26;

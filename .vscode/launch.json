@@ -2,11 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug FastAPI (uvicorn)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--host", "127.0.0.1", "--port", "8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "justMyCode": true
+    },
+    {
       "name": "Debug app.js (Chrome)",
       "type": "pwa-chrome",
       "request": "launch",
       "url": "http://localhost:8000/",
       "webRoot": "${workspaceFolder}/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug JS + PY Together",
+      "configurations": ["Debug FastAPI (uvicorn)", "Debug app.js (Chrome)"]
     }
   ]
 }
