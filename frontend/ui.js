@@ -32,6 +32,7 @@ function renderTasks() {
         li.innerHTML = `
             <span>${task.title}</span>
             <div class="actions">
+                <button class="edit-btn">Edit</button>
                 <button class="complete-btn">${task.completed ? 'Undo' : 'Done'}</button>
                 <button class="delete-btn">Delete</button>
             </div>

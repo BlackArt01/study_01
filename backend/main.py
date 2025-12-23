@@ -1,13 +1,25 @@
 from fastapi import FastAPI, HTTPException
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+from db import init_db, get_db, close_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup
+    init_db()
+    yield
+    # shutdown
+    close_db()
 
 # Initialize the application
 # In C++, this would be like initializing your main application class or server instance.
-app = FastAPI()
+#app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # Configure CORS (Cross-Origin Resource Sharing)
 # This allows our frontend (which might run on a different port during dev) to talk to this backend.
@@ -19,6 +31,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
 
 # --- Data Models ---
 
@@ -42,56 +55,48 @@ current_id_counter = 1
 # GET /tasks
 # Returns the list of all tasks.
 # @app.get decorator registers this function to handle GET requests at "/tasks".
-@app.get("/tasks", response_model=List[Task])
+@app.get("/tasks")
 def get_tasks():
-    return tasks
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM tasks").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 # POST /tasks
 # Creates a new task.
 # The 'task' argument is automatically parsed from the JSON body of the request.
-@app.post("/tasks", response_model=Task)
+@app.post("/tasks")
 def create_task(task: Task):
-    global current_id_counter
-    # Assign an ID to the new task
-    task.id = current_id_counter
-    current_id_counter += 1
-    
-    # Add to our "vector"
-    tasks.append(task)
-    return task
+    conn = get_db()
+    cur = conn.execute(
+        "INSERT INTO tasks(title, completed) VALUES (?, ?)",
+        (task.title, int(task.completed))
+    )
+    conn.commit()
+    conn.close()
+    return { "id": cur.lastrowid, **task.dict() }
 
 # PUT /tasks/{task_id}
 # Updates an existing task.
-@app.put("/tasks/{task_id}", response_model=Task)
-def update_task(task_id: int, updated_task: Task):
-    # Find the task in the list
-    # In C++, you might use std::find_if
-    for i, t in enumerate(tasks):
-        if t.id == task_id:
-            # Update fields
-            tasks[i].title = updated_task.title
-            tasks[i].completed = updated_task.completed
-            tasks[i].id = task_id # Ensure ID stays the same
-            return tasks[i]
-    
-    # If not found, throw 404
-    raise HTTPException(status_code=404, detail="Task not found")
+@app.put("/tasks/{task_id}")
+def update_task(task_id: int, task: Task):
+    conn = get_db()
+    conn.execute(
+        "UPDATE tasks SET title=?, completed=? WHERE id=?",
+        (task.title, int(task.completed), task_id)
+    )
+    conn.commit()
+    conn.close()
+    return task
 
 # DELETE /tasks/{task_id}
 # Deletes a task.
 @app.delete("/tasks/{task_id}")
 def delete_task(task_id: int):
-    global tasks
-    # Filter out the task to delete
-    # In C++, this is like the erase-remove idiom:
-    # tasks.erase(std::remove_if(tasks.begin(), tasks.end(), ...), tasks.end());
-    initial_count = len(tasks)
-    tasks = [t for t in tasks if t.id != task_id]
-    
-    if len(tasks) == initial_count:
-        raise HTTPException(status_code=404, detail="Task not found")
-    
-    return {"message": "Task deleted"}
+    conn = get_db()
+    conn.execute("DELETE FROM tasks WHERE id=?", (task_id,))
+    conn.commit()
+    conn.close()
 
 # Serve static files (Frontend)
 # This tells FastAPI to serve files from the '../frontend' directory at the root URL.

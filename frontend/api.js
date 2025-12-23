@@ -4,7 +4,7 @@ async function request(url, options = {} ) {
     const res = await fetch(url, options);
     
     if (!res.ok) {
-        throw new Error('HTTP ${res.status}'); 
+        throw new Error(`HTTP ${res.status}`); 
     }
 
     return res.json();
@@ -37,5 +37,15 @@ export function apiToggleTask(task) {
 export function apiDeleteTask(id) {
     return request(`${API_URL}/tasks/${id}`, {
         method: 'DELETE'
-    }).then(res => { if (!res.ok) throw new Error('Delete failed'); });
+    });
+}
+
+export function apiUpdateTask(id, title, completed) {
+    return request(`${API_URL}/tasks/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title: title, completed: completed })
+    });
 }

@@ -1,6 +1,8 @@
 import { state } from './state.js';
 import { apiFetchTasks, apiCreateTask, apiToggleTask, apiDeleteTask } from './api.js';
 import { render } from './ui.js';       
+import { openModal } from './modal.js';
+import { apiUpdateTask } from './api.js';
 
 const taskInput = document.getElementById('task-input');
 const addBtn = document.getElementById('add-btn');
@@ -41,7 +43,26 @@ taskList.addEventListener('click', async (e) => {
         state.loading = true;
         render();
 
-        if (action === 'toggle') {
+        if (action === 'edit') {
+            openModal({
+                title: 'Edit Task',
+                contentHTML: `<input type="text" id="_edit_input" value="${task.title}" style="width:100%;padding:8px">`,
+                submitLabel: 'Save',
+                onSubmit: async ({ overlay }) => {
+                    const val = overlay.querySelector('#_edit_input').value.trim();
+                    if (!val) {
+                        return false;
+                    }
+
+                    state.loading = true;
+                    render();
+
+                    await apiUpdateTask(task.id, val, task.completed);
+                    await loadTasks();
+                    return true;
+                }
+            });
+        } else if (action === 'toggle') {
             await apiToggleTask(task);
         } else if (action === 'delete') {
             await apiDeleteTask(id);
@@ -64,7 +85,7 @@ async function onAdd() {
         state.loading = true;
         render();
 
-        await apiCreateTask({ title });
+        await apiCreateTask(title);
         taskInput.value = '';
         updateAddBtn();
         await loadTasks();
@@ -80,6 +101,7 @@ async function onAdd() {
 async function loadTasks() {
     try {
         const tasks = await apiFetchTasks();
+        state.tasks = tasks;
         state.errorMessage = null;
     } catch (error) {
         state.errorMessage = 'Failed to load tasks';
