@@ -6,6 +6,7 @@ const API_URL = 'http://localhost:8000';
 const taskInput = document.getElementById('task-input');
 const addBtn = document.getElementById('add-btn');
 const taskList = document.getElementById('task-list');
+const statusElement = document.getElementById('status');
 
 
 // 입력값을 "검증된 제목"으로 정규화.
@@ -13,7 +14,6 @@ function getNormalizedTitle() {
     return taskInput.value.trim();   // 공백 제거
 }
 
-// 입력 상태에 따라 Add 버튼 활성 / 비활성.
 // 입력 상태에 따라 Add 버튼 활성 / 비활성.
 function updateAddButtonState() {
     const title = getNormalizedTitle();
@@ -61,17 +61,27 @@ taskInput.addEventListener('keydown', (e) => {
 // This is an asynchronous function (async/await).
 // In C++, this would be like running a network request in a separate thread and waiting for a future/promise.
 async function fetchTasks() {
+    setLoading('Loading tasks...');
+
     try {
         const response = await fetch(`${API_URL}/tasks`);
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+
         const tasks = await response.json();
         renderTasks(tasks);
+        clearStatus();
+        
     } catch (error) {
         console.error('Error fetching tasks:', error);
+        setError('Failed to load tasks.');
     }
 }
 
 // Create a new task
 async function createTask(title) {
+    setLoading('Creating task...'); 
+
     try {
         const response = await fetch(`${API_URL}/tasks`, {
             method: 'POST',
@@ -81,16 +91,20 @@ async function createTask(title) {
             body: JSON.stringify({ title: title, completed: false })
         });
 
-        if (response.ok) {
-            fetchTasks(); // Refresh list
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        fetchTasks(); // Refresh list
+
     } catch (error) {
         console.error('Error creating task:', error);
+        setError('Failed to create task.');
     }
 }
 
 // Update task status (Complete/Incomplete)
 async function toggleTask(id, currentTitle, currentStatus) {
+    setLoading('Toggling task...');
     try {
         const response = await fetch(`${API_URL}/tasks/${id}`, {
             method: 'PUT',
@@ -100,26 +114,34 @@ async function toggleTask(id, currentTitle, currentStatus) {
             body: JSON.stringify({ title: currentTitle, completed: !currentStatus })
         });
 
-        if (response.ok) {
-            fetchTasks();
+        if (!response.ok) {
+            throw new Error(`Toggle failed: ${response.status}`);
         }
+        fetchTasks();
     } catch (error) {
         console.error('Error updating task:', error);
+        setError('Failed to toggle task.');
     }
 }
 
 // Delete a task
 async function deleteTask(id) {
+
+    setLoading('Deleting task...');
+
     try {
         const response = await fetch(`${API_URL}/tasks/${id}`, {
             method: 'DELETE'
         });
 
-        if (response.ok) {
-            fetchTasks();
+        if (!response.ok) {
+        throw new Error(`Delete failed: ${response.status}`);
         }
+        fetchTasks();
+
     } catch (error) {
         console.error('Error deleting task:', error);
+        setError('Failed to delete task.');
     }
 }
 
@@ -156,6 +178,21 @@ function renderTasks(tasks) {
 
         taskList.appendChild(li);
     });
+}
+
+function setLoading(message = 'Loading...') {
+    statusElement.textContent = message;
+    statusElement.className = 'status loading';
+}
+
+function clearStatus() {
+    statusElement.textContent = '';
+    statusElement.className = 'status';
+}
+
+function setError(message) {
+    statusElement.textContent = message;
+    statusElement.className = 'status error';
 }
 
 // Initial load

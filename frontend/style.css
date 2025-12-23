@@ -5,6 +5,7 @@
     --primary-color: #7aa2f7;
     --danger-color: #f7768e;
     --success-color: #9ece6a;
+    --loading-color: #4dabf7;
 }
 
 body {
@@ -112,3 +113,17 @@ ul {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.status {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.status.error {
+    color: var(--danger-color);
+}
+
+.status.loading {
+    color: var(--loading-color);
+}
+
