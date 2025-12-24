@@ -16,12 +16,26 @@
       "request": "launch",
       "url": "http://localhost:8000/",
       "webRoot": "${workspaceFolder}/frontend"
+    },
+    {
+      "name": "Debug React (Vite + Chrome)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend-react"
     }
   ],
   "compounds": [
     {
       "name": "Debug JS + PY Together",
       "configurations": ["Debug FastAPI (uvicorn)", "Debug app.js (Chrome)"]
-    }
+    },
+    {
+    "name": "Debug React + FastAPI",
+    "configurations": [
+      "Debug React (Vite + Chrome)",
+      "Debug FastAPI (uvicorn)"
+    ]
+  }
   ]
 }
