@@ -1,7 +1,7 @@
 // src/components/TaskList.jsx
 import TaskItem from './TaskItem';
 
-export default function TaskList({ tasks, onToggle, onDelete }) {
+export default function TaskList({ tasks, onToggle, onDelete, onEdit }) {
   return (
     <ul>
       {tasks.map(task => (
@@ -10,6 +10,7 @@ export default function TaskList({ tasks, onToggle, onDelete }) {
           task={task}
           onToggle={onToggle}
           onDelete={onDelete}
+          onEdit={onEdit}
         />
       ))}
     </ul>

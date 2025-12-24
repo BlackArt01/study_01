@@ -7,12 +7,15 @@ import {
   deleteTask
 } from '../api/api';
 import TaskList from '../components/TaskList';
+import EditTaskModal from '../components/EditTaskModal';
+
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [title, setTitle] = useState('');
+  const [editingTask, setEditingTask] = useState(null);
 
   async function loadTasks() {
     try {
@@ -43,6 +46,25 @@ export default function App() {
     loadTasks();
   }
 
+  function onEdit(task) {
+    setEditingTask(task);
+  }
+
+  async function onSaveEdit(newTitle) {
+    try {
+      setLoading(true);
+      await updateTask(
+        editingTask.id,
+        newTitle,
+        editingTask.completed
+      );
+      setEditingTask(null);
+      loadTasks();
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     loadTasks();
   }, []);
@@ -67,7 +89,17 @@ export default function App() {
         tasks={tasks}
         onToggle={onToggle}
         onDelete={onDelete}
+        onEdit={onEdit}
       />
+
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onSave={onSaveEdit}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
     </div>
   );
 }
+
