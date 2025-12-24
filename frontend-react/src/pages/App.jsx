@@ -1,5 +1,5 @@
 // src/pages/App.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import {
   fetchTasks,
   createTask,
@@ -8,24 +8,28 @@ import {
 } from '../api/api';
 import TaskList from '../components/TaskList';
 import EditTaskModal from '../components/EditTaskModal';
+import { initialState, taskReducer } from '../state/taskReducer';
+
 
 
 export default function App() {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // 전역 상태 (업무 로직)
+  const [state, dispatch] = useReducer(taskReducer, initialState);
+  const { tasks, loading, error, editingTask } = state;
+
+  // 로컬 UI 상태 (입력 필드)
   const [title, setTitle] = useState('');
-  const [editingTask, setEditingTask] = useState(null);
 
   async function loadTasks() {
+    dispatch({ type: 'LOADING_START' });
+
     try {
-      setLoading(true);
-      setTasks(await fetchTasks());
-      setError(null);
+      const tasks = await fetchTasks();
+      dispatch({ type: 'SET_TASKS', tasks });
     } catch {
-      setError('Failed to load tasks');
+      dispatch({ type: 'ERROR', error: 'Failed to load tasks' });
     } finally {
-      setLoading(false);
+      dispatch({ type: 'LOADING_END' });
     }
   }
 
@@ -47,21 +51,25 @@ export default function App() {
   }
 
   function onEdit(task) {
-    setEditingTask(task);
+    dispatch({ type: 'EDIT_START', task });
+  }
+
+  function onCloseEdit() {
+   dispatch({ type: 'EDIT_END' });
   }
 
   async function onSaveEdit(newTitle) {
     try {
-      setLoading(true);
+      dispatch({ type: 'LOADING_START' });
       await updateTask(
         editingTask.id,
         newTitle,
         editingTask.completed
       );
-      setEditingTask(null);
+      dispatch({ type: 'EDIT_END' });
       loadTasks();
     } finally {
-      setLoading(false);
+      dispatch({ type: 'LOADING_END' });
     }
   }
 
@@ -96,9 +104,9 @@ export default function App() {
         <EditTaskModal
           task={editingTask}
           onSave={onSaveEdit}
-          onClose={() => setEditingTask(null)}
+          onClose={onCloseEdit}
         />
-      )}
+      )}  
     </div>
   );
 }
