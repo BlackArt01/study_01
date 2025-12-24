@@ -18,7 +18,13 @@ export default function TasksPage() {
   const { tasks, loading, error, editingTask } = state;
 
   // 로컬 UI 상태 (입력 필드)
+  // 페이지 전용 UI 상태
   const [title, setTitle] = useState('');
+
+    // 페이지 진입 시 한 번만 실행
+    useEffect(() => {
+      loadTasks();
+    }, []);
 
   async function loadTasks() {
     dispatch({ type: 'LOADING_START' });
@@ -72,10 +78,6 @@ export default function TasksPage() {
       dispatch({ type: 'LOADING_END' });
     }
   }
-
-  useEffect(() => {
-    loadTasks();
-  }, []);
 
   return (
     <div>
