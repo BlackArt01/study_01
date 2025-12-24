@@ -13,19 +13,15 @@ import useAsync from '../hooks/useAsync';
 
 
 export default function TasksPage() {
-  // 전역 상태 (업무 로직)
   const [state, dispatch] = useReducer(taskReducer, initialState);
-  // const { tasks, editingTask } = state;
-  const { run, loading, error } = useAsync();
-  
-  // 로컬 UI 상태 (입력 필드)
-  // 페이지 전용 UI 상태
+  const { tasks, editingTask } = state;
+  const { run } = useAsync();
+
   const [title, setTitle] = useState('');
 
-    // 페이지 진입 시 한 번만 실행
-    useEffect(() => {
-      loadTasks();
-    }, []);
+  useEffect(() => {
+    loadTasks();
+  }, []);
 
   async function loadTasks() {
     const tasks = await run(() => fetchTasks());
@@ -34,7 +30,6 @@ export default function TasksPage() {
 
   async function onAdd() {
     if (!title.trim()) return;
-
     await run(() => createTask(title.trim()));
     setTitle('');
     loadTasks();
@@ -55,7 +50,7 @@ export default function TasksPage() {
   }
 
   function onCloseEdit() {
-   dispatch({ type: 'EDIT_END' });
+    dispatch({ type: 'EDIT_END' });
   }
 
   async function onSaveEdit(newTitle) {
@@ -92,7 +87,7 @@ export default function TasksPage() {
           onSave={onSaveEdit}
           onClose={onCloseEdit}
         />
-      )}  
+      )}
     </div>
   );
 }
