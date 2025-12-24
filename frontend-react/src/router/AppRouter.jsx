@@ -4,12 +4,17 @@ import TasksPage from '../pages/TasksPage';
 import StatsPage from '../pages/StatsPage';
 import SettingsPage from '../pages/SettingsPage';
 
-export default function AppRouter() {
+export default function AppRouter({ loading, error }) {
   return (
     <BrowserRouter>
       <Routes>
         {/* Layout Route */}
-        <Route path="/" element={<MainLayout />}>
+        <Route path="/" element={
+            <MainLayout loading={loading} error={error}>
+              {/* routes */}
+              <Route index element={<TasksPage />} />
+            </MainLayout>
+        }>
           {/* Index Route */}
           <Route index element={<TasksPage />} />
 

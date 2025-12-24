@@ -1,29 +1,23 @@
 import { useEffect, useState } from 'react';
 import { fetchTasks } from '../api/api';
+import useAsync from '../hooks/useAsync';
 
 export default function StatsPage() {
+  const { run, loading, error } = useAsync();
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadStats();
+    run(async () => {
+      const tasks = await fetchTasks();
+      const completed = tasks.filter(t => t.completed).length;
+
+      setStats({
+        total: tasks.length,
+        completed
+      });
+    });
   }, []);
 
-  async function loadStats() {
-    setLoading(true);
-
-    const tasks = await fetchTasks();
-    const completed = tasks.filter(t => t.completed).length;
-
-    setStats({
-      total: tasks.length,
-      completed
-    });
-
-    setLoading(false);
-  }
-
-  if (loading) return <p>Loading stats...</p>;
   if (!stats) return null;
 
   return (

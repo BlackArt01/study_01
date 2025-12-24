@@ -9,14 +9,15 @@ import {
 import TaskList from '../components/TaskList';
 import EditTaskModal from '../components/EditTaskModal';
 import { initialState, taskReducer } from '../state/taskReducer';
-
+import useAsync from '../hooks/useAsync';
 
 
 export default function TasksPage() {
   // 전역 상태 (업무 로직)
   const [state, dispatch] = useReducer(taskReducer, initialState);
-  const { tasks, loading, error, editingTask } = state;
-
+  // const { tasks, editingTask } = state;
+  const { run, loading, error } = useAsync();
+  
   // 로컬 UI 상태 (입력 필드)
   // 페이지 전용 UI 상태
   const [title, setTitle] = useState('');
@@ -27,32 +28,25 @@ export default function TasksPage() {
     }, []);
 
   async function loadTasks() {
-    dispatch({ type: 'LOADING_START' });
-
-    try {
-      const tasks = await fetchTasks();
-      dispatch({ type: 'SET_TASKS', tasks });
-    } catch {
-      dispatch({ type: 'ERROR', error: 'Failed to load tasks' });
-    } finally {
-      dispatch({ type: 'LOADING_END' });
-    }
+    const tasks = await run(() => fetchTasks());
+    dispatch({ type: 'SET_TASKS', tasks });
   }
 
   async function onAdd() {
     if (!title.trim()) return;
-    await createTask(title.trim());
+
+    await run(() => createTask(title.trim()));
     setTitle('');
     loadTasks();
   }
 
   async function onToggle(task) {
-    await updateTask(task.id, task.title, !task.completed);
+    await run(() => updateTask(task.id, task.title, !task.completed));
     loadTasks();
   }
 
   async function onDelete(id) {
-    await deleteTask(id);
+    await run(() => deleteTask(id));
     loadTasks();
   }
 
@@ -65,18 +59,11 @@ export default function TasksPage() {
   }
 
   async function onSaveEdit(newTitle) {
-    try {
-      dispatch({ type: 'LOADING_START' });
-      await updateTask(
-        editingTask.id,
-        newTitle,
-        editingTask.completed
-      );
-      dispatch({ type: 'EDIT_END' });
-      loadTasks();
-    } finally {
-      dispatch({ type: 'LOADING_END' });
-    }
+    await run(() =>
+      updateTask(editingTask.id, newTitle, editingTask.completed)
+    );
+    dispatch({ type: 'EDIT_END' });
+    loadTasks();
   }
 
   return (
@@ -91,9 +78,6 @@ export default function TasksPage() {
       <button onClick={onAdd} disabled={!title.trim()}>
         Add
       </button>
-
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <TaskList
         tasks={tasks}
@@ -112,4 +96,3 @@ export default function TasksPage() {
     </div>
   );
 }
-
