@@ -1,4 +1,4 @@
-// src/pages/App.jsx
+// src/pages/TasksPage.jsx
 import { useEffect, useReducer, useState } from 'react';
 import {
   fetchTasks,
@@ -12,7 +12,7 @@ import { initialState, taskReducer } from '../state/taskReducer';
 
 
 
-export default function App() {
+export default function TasksPage() {
   // 전역 상태 (업무 로직)
   const [state, dispatch] = useReducer(taskReducer, initialState);
   const { tasks, loading, error, editingTask } = state;
